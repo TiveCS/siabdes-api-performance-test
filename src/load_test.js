@@ -13,10 +13,20 @@ export const options = {
   stages: [
     { duration: "2m", target: 54 }, // 10% of 540 users
     { duration: "3m", target: 162 }, // 30% of 540 users
-    { duration: "5m", target: 270 }, // 50% of 540 users
-    { duration: "5m", target: 378 }, // 70% of 540 users (peak of normal usage)
-    { duration: "3m", target: 0 },
+    { duration: "3m", target: 270 }, // 50% of 540 users
+    { duration: "3m", target: 378 }, // 70% of 540 users (peak of normal usage)
+    { duration: "2m", target: 0 },
   ],
+  thresholds: {
+    // 90% of requests must finish within 2 seconds.
+    http_req_duration: ["p(90) < 2000"],
+
+    // Error rate must be lower than 5%.
+    http_req_failed: ["rate<0.05"],
+
+    // 95% of request's checks must be successful.
+    checks: ["rate>0.95"],
+  },
 };
 
 // The function that defines VU logic.
@@ -44,7 +54,7 @@ export default function () {
   });
 
   if (!loginCheck) {
-    fail("Failed to login");
+    fail(`Failed to login (status: ${loginResponse.status})`);
   }
 
   const { user, backendTokens } = loginResponse.json()["data"];
@@ -66,7 +76,11 @@ export default function () {
       });
 
       if (!journalCheck) {
-        console.log(`Failed to create journal ${i + 1}`);
+        console.log(
+          `Failed to create journal ${i + 1} (status: ${
+            journalResponse.status
+          })`
+        );
       }
 
       // Sleep for a random duration between 15-20 seconds
@@ -90,7 +104,7 @@ export default function () {
   const { id: employeeId } = employeeResponse.json()["data"];
 
   if (!employeeCheck) {
-    fail(`Failed to add employee`);
+    fail(`Failed to add employee (status: ${employeeResponse.status})`);
   }
 
   sleep(2);
@@ -108,7 +122,9 @@ export default function () {
     });
 
     if (!pph21Check) {
-      console.log(`Failed to create PPH21 tax ${i + 1}`);
+      console.log(
+        `Failed to create PPH21 tax ${i + 1} (status: ${pph21Response.status})`
+      );
     }
 
     sleep(randomIntBetween(8, 15));
@@ -129,7 +145,9 @@ export default function () {
     });
 
     if (!ppnCheck) {
-      console.log(`Failed to create PPN tax ${i + 1}`);
+      console.log(
+        `Failed to create PPN tax ${i + 1} (status: ${ppnResponse.status})`
+      );
     }
 
     sleep(randomIntBetween(5, 12));

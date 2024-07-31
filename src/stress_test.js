@@ -20,26 +20,27 @@ import {
   createBumdesReportPpnUsecase,
   createUnitReportPpnUsecase,
 } from "./usecases/ppn.js";
+import { randomIntBetween } from "./lib/util.js";
 
 export const options = {
-  // A number specifying the number of VUs to run concurrently.
-  // vus: 1,
-  // A string specifying the total duration of the test run.
-  // duration: "5m",
-
   stages: [
     { duration: "1m", target: 100 }, // warm up
     { duration: "2m", target: 378 }, // 70% of 540 users
     { duration: "5m", target: 540 }, // peak users
-    { duration: "1m", target: 0 }, //
+    { duration: "3m", target: 0 }, //
   ],
+  thresholds: {
+    // 90% of requests must finish within 2 seconds.
+    http_req_duration: ["p(90) < 2000"],
+
+    // Error rate must be lower than 5%.
+    http_req_failed: ["rate<0.05"],
+
+    // 95% of request's checks must be successful.
+    checks: ["rate>0.95"],
+  },
 };
 
-// The function that defines VU logic.
-//
-// See https://grafana.com/docs/k6/latest/examples/get-started-with-k6/ to learn more
-// about authoring k6 scripts.
-//
 export default function () {
   /**
    * Scenario idea:
@@ -62,7 +63,7 @@ export default function () {
   const loginUnitResponse = loginUsecase(UNIT_IDENTIFIER, UNIT_PASSWORD);
 
   if (loginUnitResponse.status !== 201) {
-    fail("Failed to login as unit");
+    fail(`Failed to login as unit (status: ${loginUnitResponse.status})`);
   }
 
   const { user, backendTokens } = loginUnitResponse.json()["data"];
@@ -80,10 +81,12 @@ export default function () {
   });
 
   if (!unitLabaRugiCheck) {
-    console.log("Failed to get unit laba rugi report");
+    console.log(
+      `Failed to get unit laba rugi report (status: ${unitLabaRugiResponse.status})`
+    );
   }
 
-  sleep(10);
+  sleep(randomIntBetween(8, 15));
 
   const unitPosisiKeuanganResponse = createUnitReportPosisiKeuanganUsecase(
     user.unitId,
@@ -95,10 +98,12 @@ export default function () {
   });
 
   if (!unitPosisiKeuanganCheck) {
-    console.log("Failed to get unit posisi keuangan report");
+    console.log(
+      `Failed to get unit posisi keuangan report (status: ${unitPosisiKeuanganResponse.status})`
+    );
   }
 
-  sleep(10);
+  sleep(randomIntBetween(8, 15));
 
   const unitPph21Response = createUnitReportPph21Usecase(
     user.unitId,
@@ -110,10 +115,12 @@ export default function () {
   });
 
   if (!unitPph21Check) {
-    console.log("Failed to create unit pph21 report");
+    console.log(
+      `Failed to create unit pph21 report (status: ${unitPph21Response.status})`
+    );
   }
 
-  sleep(10);
+  sleep(randomIntBetween(8, 15));
 
   const unitPpnResponse = createUnitReportPpnUsecase(
     user.unitId,
@@ -125,15 +132,17 @@ export default function () {
   });
 
   if (!unitPpnCheck) {
-    console.log("Failed to create unit ppn report");
+    console.log(
+      `Failed to create unit ppn report (status: ${unitPpnResponse.status})`
+    );
   }
 
-  sleep(10);
+  sleep(randomIntBetween(8, 15));
 
   const loginBumdesResponse = loginUsecase(BUMDES_IDENTIFIER, BUMDES_PASSWORD);
 
   if (loginBumdesResponse.status !== 201) {
-    fail("Failed to login as bumdes");
+    fail(`Failed to login as bumdes (status: ${loginBumdesResponse.status})`);
   }
 
   sleep(3);
@@ -151,10 +160,12 @@ export default function () {
   });
 
   if (!bumdesLabaRugiCheck) {
-    console.log("Failed to get bumdes laba rugi report");
+    console.log(
+      `Failed to get bumdes laba rugi report (status: ${bumdesLabaRugiResponse.status})`
+    );
   }
 
-  sleep(10);
+  sleep(randomIntBetween(8, 15));
 
   const bumdesPosisiKeuanganResponse = createBumdesReportPosisiKeuanganUsecase(
     bumdesUser.bumdesId,
@@ -166,10 +177,12 @@ export default function () {
   });
 
   if (!bumdesPosisiKeuanganCheck) {
-    console.log("Failed to get bumdes posisi keuangan report");
+    console.log(
+      `Failed to get bumdes posisi keuangan report (status: ${bumdesPosisiKeuanganResponse.status})`
+    );
   }
 
-  sleep(10);
+  sleep(randomIntBetween(8, 15));
 
   const bumdesPph21Response = createBumdesReportPph21Usecase(
     bumdesUser.bumdesId,
@@ -181,10 +194,12 @@ export default function () {
   });
 
   if (!bumdesPph21Check) {
-    console.log("Failed to create bumdes pph21 report");
+    console.log(
+      `Failed to create bumdes pph21 report (status: ${bumdesPph21Response.status})`
+    );
   }
 
-  sleep(10);
+  sleep(randomIntBetween(8, 15));
 
   const bumdesPpnResponse = createBumdesReportPpnUsecase(
     bumdesUser.bumdesId,
@@ -196,8 +211,8 @@ export default function () {
   });
 
   if (!bumdesPpnCheck) {
-    console.log("Failed to create bumdes ppn report");
+    console.log(
+      `Failed to create bumdes ppn report (status: ${bumdesPpnResponse.status})`
+    );
   }
-
-  sleep(1);
 }

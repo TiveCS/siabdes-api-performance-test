@@ -1,3 +1,5 @@
 .env*
+!.env.example
 k6.exe
 node_modules
+*-report.html

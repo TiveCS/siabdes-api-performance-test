@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test:smoke": "./k6.exe run src/smoke_test.js",
-    "test:load": "./k6.exe run src/load_test.js",
-    "test:stress": "./k6.exe run src/stress_test.js",
+    "test:smoke": "K6_WEB_DASHBOARD_EXPORT=smoke-report.html ./k6.exe run src/smoke_test.js",
+    "test:load": "K6_WEB_DASHBOARD_EXPORT=load-report.html ./k6.exe run src/load_test.js",
+    "test:stress": "K6_WEB_DASHBOARD_EXPORT=stress-report.html ./k6.exe run src/stress_test.js",
     "build": "xk6 build latest --with github.com/szkiba/xk6-dotenv@latest"
   },
   "author": "",
